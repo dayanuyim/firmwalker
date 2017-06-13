@@ -102,12 +102,12 @@ do
           do
              text+=$($certfile | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
              serialno=$(openssl x509 -in $certfile -serial -noout)
-             text+=($serialno | md_row | tee -a $FILE)
+             text+=$($serialno | md_row | tee -a $FILE)
              # Perform Shodan search. This assumes Shodan CLI installed with an API key. Uncomment following three lines if you wish to use.
              # serialnoformat=(ssl.cert.serial:${serialno##*=})
              # shocount=$(shodan count $serialnoformat)
              # echo "Number of devices found in Shodan =" $shocount | tee -a $FILE
-             text+=(cat $certfile | md_row | tee -a $FILE)
+             text+=$(cat $certfile | md_row | tee -a $FILE)
           done
        fi
     md_tbl "ssl file" "$text"

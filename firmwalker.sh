@@ -22,6 +22,22 @@ function getArray {
     done < "$1"
 }
 
+function sect {
+    if [ ! -z "$1" ]; then
+        echo "\`\`\`"
+        echo "$1"
+        echo "\`\`\`"
+    fi
+}
+
+function md_tbl {
+    if [ ! -z "$2" ]; then
+        msg "| # | $1 |"
+        msg "|--:|:---|"
+        echo "$2"
+    fi
+}
+
 # Check for arguments
 if [[ $# -gt 2 || $# -lt 1 ]]; then
     usage
@@ -34,125 +50,150 @@ if [[ $# -eq 2 ]]; then
 else
     FILE="firmwalker.txt"
 fi
+
+#append '/'
+if [[ "$FIRMDIR" != "*/" ]]; then
+    FIRMDIR="$FIRMDIR/"
+fi
+
 # Remove previous file if it exists, is a file and doesn't point somewhere
 if [[ -e "$FILE" && ! -h "$FILE" && -f "$FILE" ]]; then
     rm -f $FILE
 fi
 
-# Perform searches
-msg "***Firmware Directory***"
-msg $FIRMDIR
-msg "***Search for password files***"
+# Perform searches =============================================
+
+msg "# Filesystem Vuls"
+#msg "## Firmware Directory"
+#msg $FIRMDIR
+
+msg "## Password Files"
 getArray "data/passfiles"
 passfiles=("${array[@]}")
 for passfile  in "${passfiles[@]}"
 do
-    msg "##################################### $passfile"
-    find $FIRMDIR -name $passfile | cut -c${#FIRMDIR}- | tee -a $FILE
-    msg ""
+    msg "### $passfile"
+    text=$(find $FIRMDIR -name $passfile | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+    md_tbl "passfile" "$text"
 done
-msg "***Search for Unix-MD5 hashes***"
+
+msg ""
+msg "## Unix-MD5 hashes"
 egrep -sro '\$1\$\w{8}\S{23}' $FIRMDIR | tee -a $FILE
 msg ""
 if [[ -d "$FIRMDIR/etc/ssl" ]]; then
-    msg "***List etc/ssl directory***"
-    ls -l $FIRMDIR/etc/ssl | tee -a $FILE
+    msg "### List etc/ssl directory"
+    text=$(ls -l $FIRMDIR/etc/ssl | md_row | tee -a $FILE)
+    md_tbl "ssl dir" "$text"
 fi
+
 msg ""
-msg "***Search for SSL related files***"
+msg "## SSL related files"
 getArray "data/sslfiles"
 sslfiles=("${array[@]}")
 for sslfile in ${sslfiles[@]}
 do
-    msg "##################################### $sslfile"
-    find $FIRMDIR -name $sslfile | cut -c${#FIRMDIR}- | tee -a $FILE
-    msg ""
+    msg "### $sslfile"
+    text=$(find $FIRMDIR -name $sslfile | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+    md_tbl "ssl file" "$text"
 done
+
 msg ""
-msg "***Search for SSH related files***"
+msg "## SSH related files"
 getArray "data/sshfiles"
 sshfiles=("${array[@]}")
 for sshfile in ${sshfiles[@]}
 do
-    msg "##################################### $sshfile"
-    find $FIRMDIR -name $sshfile | cut -c${#FIRMDIR}- | tee -a $FILE
-    msg ""
+    msg "### $sshfile"
+    text=$(find $FIRMDIR -name $sshfile | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+    md_tbl "ssh file" "$text"
 done
+
 msg ""
-msg "***Search for configuration files***"
+msg "## configuration files"
 getArray "data/conffiles"
 conffiles=("${array[@]}")
 for conffile in ${conffiles[@]}
 do
-    msg "##################################### $conffile"
-    find $FIRMDIR -name $conffile | cut -c${#FIRMDIR}- | tee -a $FILE
-    msg ""
+    msg "### $conffile"
+    text=$(find $FIRMDIR -name $conffile | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+    md_tbl "conf file" "$text"
 done
 msg ""
-msg "***Search for database related files***"
+msg "## database related files"
 getArray "data/dbfiles"
 dbfiles=("${array[@]}")
 for dbfile in ${dbfiles[@]}
 do
-    msg "##################################### $dbfile"
-    find $FIRMDIR -name $dbfile | cut -c${#FIRMDIR}- | tee -a $FILE
-    msg ""
+    msg "### $dbfile"
+    text=$(find $FIRMDIR -name $dbfile | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+    md_tbl "db file" "$text"
 done
+
 msg ""
-msg "***Search for shell scripts***"
-msg "##################################### shell scripts"
-find $FIRMDIR -name "*.sh" | cut -c${#FIRMDIR}- | tee -a $FILE
+msg "## shell scripts"
+msg "### shell scripts"
+text=$(find $FIRMDIR -name "*.sh" | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+md_tbl "shell script" "$text"
+
 msg ""
-msg "***Search for other .bin files***"
-msg "##################################### bin files"
-find $FIRMDIR -name "*.bin" | cut -c${#FIRMDIR}- | tee -a $FILE
+msg "## other .bin files"
+msg "### bin files"
+text=$(find $FIRMDIR -name "*.bin" | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+md_tbl "bin file" "$text"
+
 msg ""
-msg "***Search for patterns in files***"
+msg "## patterns in files"
 getArray "data/patterns"
 patterns=("${array[@]}")
 for pattern in "${patterns[@]}"
 do
-    msg "##################################### $pattern"
-    grep -lsirnw $FIRMDIR -e "$pattern" | cut -c${#FIRMDIR}- | tee -a $FILE
-    msg ""
+    msg "### $pattern"
+    text=$(grep -lsirn $FIRMDIR -e "$pattern" | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+    md_tbl "$pattern" "$text"
 done
+
 msg ""
-msg "***Search for web servers***"
-msg "##################################### search for web servers"
+msg "## web servers"
 getArray "data/webservers"
 webservers=("${array[@]}")
 for webserver in ${webservers[@]}
 do
-    msg "##################################### $webserver"
-    find $FIRMDIR -name "$webserver" | cut -c${#FIRMDIR}- | tee -a $FILE
-    msg ""
+    msg "### $webserver"
+    text=$(find $FIRMDIR -name "$webserver" | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+    md_tbl "$webserver" "$text"
 done
+
 msg ""
-msg "***Search for important binaries***"
-msg "##################################### important binaries"
+msg "## important binaries"
 getArray "data/binaries"
 binaries=("${array[@]}")
 for binary in "${binaries[@]}"
 do
-    msg "##################################### $binary"
-    find $FIRMDIR -name "$binary" | cut -c${#FIRMDIR}- | tee -a $FILE
-    msg ""
+    msg "### $binary"
+    text=$(find $FIRMDIR -name "$binary" | cut -c${#FIRMDIR}- | md_row | tee -a $FILE)
+    md_tbl "$binary" "$text"
 done
 
 msg ""
-msg "***Search for ip addresses***"
-msg "##################################### ip addresses"
-grep -sRIEho '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' $FIRMDIR | sort | uniq | tee -a $FILE
+msg "## ip addresses"
+text=$(grep -sRIEho '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' $FIRMDIR | sort | uniq |  md_row | tee -a $FILE)
+md_tbl "ip addr" "$text"
 
 msg ""
-msg "***Search for urls***"
-msg "##################################### urls"
-grep -sRIEoh '(http|https)://[^/"]+' $FIRMDIR | sort | uniq | tee -a $FILE
+msg "## urls"
+text=$(grep -sRIEoh '(http|https)://[^/"]+' $FIRMDIR | sort | uniq | md_row | tee -a $FILE)
+md_tbl "url" "$text"
 
 msg ""
-msg "***Search for emails***"
-msg "##################################### emails"
-grep -sRIEoh '([[:alnum:]_.-]+@[[:alnum:]_.-]+?\.[[:alpha:].]{2,6})' "$@" $FIRMDIR | sort | uniq | tee -a $FILE
+msg "## emails"
+text=$(grep -sRIEoh '([[:alnum:]_.-]+@[[:alnum:]_.-]+?\.[[:alpha:].]{2,6})' "$@" $FIRMDIR | sort | uniq |  md_row | tee -a $FILE)
+md_tbl "email" "$text"
 
 #Perform static code analysis 
-eslint -c eslintrc.json $FIRMDIR | tee -a $FILE
+msg "## ESLint"
+text=$(eslint -c eslintrc.json $FIRMDIR | sed "s#$FIRMDIR#/#" | md_row | tee -a $FILE)
+md_tbl "ESLint" "$text"
+
+msg "## strings"
+msg "(coming soon...)"

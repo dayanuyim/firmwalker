@@ -3,6 +3,7 @@ admin
 root
 password
 passwd
+encrypt
 pwd
 dropbear
 ssl

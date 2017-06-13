@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd /home/dayanuyim/works/firmwalker
+
+path=$1
+file=$2
+
+if [ -z "$file" ]; then
+    ./firmwalker.sh "$1"
+else
+    ./firmwalker.sh "$1" > "$2"
+fi
+
+

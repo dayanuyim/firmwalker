@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+
+import fileinput
+
+sn = 0
+for line in fileinput.input():
+    if line:
+        line = line.strip();
+    if not line:
+        continue
+    sn += 1
+    print("| %d | %s |" % (sn, line));
